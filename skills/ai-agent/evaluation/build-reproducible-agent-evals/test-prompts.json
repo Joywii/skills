@@ -1,0 +1,59 @@
+{
+  "skill": "build-reproducible-agent-evals",
+  "version": "0.1.0",
+  "source_book": "《深入理解 AI Agent：设计原理与工程实践》 — 李博杰",
+  "darwin_compatible": true,
+  "test_cases": [
+    {
+      "id": "should-trigger-01",
+      "type": "should_trigger",
+      "prompt": "我要从零搭客服 Agent benchmark：订单库要可重置，用户按脚本渐进透露信息，还要同时检查最终退款状态和必要确认流程。",
+      "expected_behavior": "应激活 build-reproducible-agent-evals；首个动作是写出结果、过程和质量三层成功契约，并定义可重置隐藏状态与用户交互协议。",
+      "notes": "正面场景：双控制交互环境与多层验证。"
+    },
+    {
+      "id": "should-trigger-02",
+      "type": "should_trigger",
+      "prompt": "邮件 Agent 把附件发错人，但 LLM Judge 因为语气很好给了高分。请重构评测，让真实结果和权限违规不能被平均分抵消。",
+      "expected_behavior": "应激活 build-reproducible-agent-evals；首个动作是把环境状态和权限路径设为硬门或 veto，只有两者通过后才允许 Judge 评价语言质量。",
+      "notes": "正面场景：结果、过程、软质量的控制关系。"
+    },
+    {
+      "id": "should-trigger-03",
+      "type": "should_trigger",
+      "prompt": "我们每次模型升级都手工挑几个 demo，没有固定任务集、环境快照或回归统计。怎样做成可复跑、可诊断、可比较的 eval harness？",
+      "expected_behavior": "应激活 build-reproducible-agent-evals；首个动作是盘点成功标准、任务分布、环境重置、原子工具和证据验证器的缺口。",
+      "notes": "正面场景：从演示式评估升级为持续验证基础设施。"
+    },
+    {
+      "id": "should-not-trigger-01",
+      "type": "should_not_trigger",
+      "prompt": "只有一个跨地区税务任务，我要把自然语言条款转成变量、约束和可执行代码，再由求解器算结果并检查边界。",
+      "expected_behavior": "不应激活 build-reproducible-agent-evals；应激活 formalize-and-verify-agent-work，首个动作是提取规则结构并定义确定性求值与断言。",
+      "notes": "跨 skill 混淆诱饵：单任务的形式化与验证，不是评估系统建设。"
+    },
+    {
+      "id": "should-not-trigger-02",
+      "type": "should_not_trigger",
+      "prompt": "评估环境已经稳定，现在要把数据库断言、状态差和过程违规转成 RL 奖励，并验证模型不会通过删除测试数据拿高分。",
+      "expected_behavior": "不应激活 build-reproducible-agent-evals；应激活 design-verifiable-agent-rewards，首个动作是定义奖励证据、过程约束和攻击性奖励漏洞用例。",
+      "notes": "跨 skill 混淆诱饵：消费评估真值设计训练奖励，而非继续搭评估环境。"
+    },
+    {
+      "id": "edge-01",
+      "type": "edge_case",
+      "prompt": "任务集和环境都已经可复跑，我只需要决定报告 Pass@5 还是连续 Pass^5，不打算重做 benchmark。",
+      "expected_behavior": "不应激活 build-reproducible-agent-evals；应激活 measure-capability-vs-reliability，首个动作是澄清探索筛选还是连续生产的业务口径。",
+      "notes": "边界：评估基础设施已就绪，剩余问题只是能力与可靠性指标选择。"
+    },
+    {
+      "id": "edge-02",
+      "type": "edge_case",
+      "prompt": "一个纯函数已有完整确定性单测和固定输入输出，没有 Agent 轨迹、工具或环境状态，还需要建设三层 Agent eval 吗？",
+      "expected_behavior": "不应激活 build-reproducible-agent-evals；首个动作是继续使用现有单元测试，除非未来引入交互环境、非确定性策略或软质量判断。",
+      "notes": "边界：现成确定性单测已完整覆盖的局部函数不需要 Agent 评测基础设施。"
+    }
+  ],
+  "minimum_pass_rate": 0.8,
+  "notes": "3 条 should_trigger、2 条 should_not_trigger、2 条 edge_case；全部 should_not_trigger 必须通过，其中包含同书兄弟 Skill 混淆测试。"
+}

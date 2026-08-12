@@ -1,0 +1,59 @@
+{
+  "skill": "diagnose-agent-boundaries",
+  "version": "0.1.0",
+  "source_book": "《深入理解 AI Agent：设计原理与工程实践》 — 李博杰",
+  "darwin_compatible": true,
+  "test_cases": [
+    {
+      "id": "should-trigger-01",
+      "type": "should_trigger",
+      "prompt": "客服 Agent 能准确解释退款步骤，但从不调用 refund 工具。团队想直接换更强模型，你先帮我判断是模型、上下文还是接口的问题。",
+      "expected_behavior": "应激活 diagnose-agent-boundaries；首个动作是固定一条失败轨迹，逐项核对模型是否看见退款状态、是否形成调用决策、是否发出动作以及工具结果是否回写。",
+      "notes": "正面场景：现有 Agent 知道做法却不执行，需要四面诊断而非先换模型。"
+    },
+    {
+      "id": "should-trigger-02",
+      "type": "should_trigger",
+      "prompt": "订单查询工具日志显示 200 和正确结果，但 Agent 连续调用同一个接口五次，最后还说没有查到。怎么定位？",
+      "expected_behavior": "应激活 diagnose-agent-boundaries；首个动作是对齐工具服务端日志与模型下一轮实际可见上下文，优先检查反馈是否缺失、截断或绑定到错误 task_id。",
+      "notes": "正面场景：动作已成功但循环，典型反馈面断裂。"
+    },
+    {
+      "id": "should-trigger-03",
+      "type": "should_trigger",
+      "prompt": "模型生成的 transfer(amount=100) 没问题，网关却把 amount 静默改成默认值 0。现在评测只显示任务失败，应该怎样做 root-cause analysis？",
+      "expected_behavior": "应激活 diagnose-agent-boundaries；首个动作是并列记录模型所见动作、实际发送参数和环境反馈，确认首个断点位于动作契约而非策略推理。",
+      "notes": "正面场景：模型动作与环境实际动作不一致，需要区分策略面和动作面。"
+    },
+    {
+      "id": "should-not-trigger-01",
+      "type": "should_not_trigger",
+      "prompt": "我们还没开发报销助手。审批步骤大多固定，只有票据异常需要动态追问；该做 workflow 还是 autonomous agent？",
+      "expected_behavior": "不应激活 diagnose-agent-boundaries，应激活 choose-agent-autonomy；首个动作是列出可预先枚举的主干、动态异常分支、自动验收和高风险提交点。",
+      "notes": "跨 Skill 混淆诱饵：这是构建前的自治选型，不是现有失败诊断。"
+    },
+    {
+      "id": "should-not-trigger-02",
+      "type": "should_not_trigger",
+      "prompt": "轨迹已经能稳定重放，我们怀疑第 7 步第一次引用了错误客户 ID。请设计只改这一处的对照实验，确认后面的超时是不是连锁结果。",
+      "expected_behavior": "不应激活 diagnose-agent-boundaries，应激活 attribute-first-errors；首个动作是冻结第 7 步之前的前缀，只替换该首错候选并重放配对回归。",
+      "notes": "跨 Skill 混淆诱饵：故障层和首错候选已知，目标是因果验证而非四面分类。"
+    },
+    {
+      "id": "edge-01",
+      "type": "edge_case",
+      "prompt": "这个研究 Agent 经常‘过早完成’，但产品经理还没定义什么算研究完成。能先用 observation-policy-action-feedback 找问题吗？",
+      "expected_behavior": "暂不激活 diagnose-agent-boundaries；首个动作是让用户定义可观察的成功状态和最低证据标准，之后才能判断反馈或停止策略是否错误。",
+      "notes": "边界：没有业务完成定义时，四个槽位都缺少可判定的对错基准。"
+    },
+    {
+      "id": "edge-02",
+      "type": "edge_case",
+      "prompt": "Agent 调用内部 SDK 后报 NullPointerException，堆栈已经精确指向一个未判空字段；没有模型决策或工具回写问题。还需要做四面诊断吗？",
+      "expected_behavior": "不应激活 diagnose-agent-boundaries；首个动作是按确定性堆栈修复空值处理并补单元测试，只有修复后仍出现 Agent 链路异常才升级到四面诊断。",
+      "notes": "边界：普通软件单点 bug 有确定证据，不应套用 Agent 架构诊断。"
+    }
+  ],
+  "minimum_pass_rate": 0.8,
+  "notes": "7 条压力测试：3 条 should_trigger、2 条 should_not_trigger、2 条 edge_case；全部 should_not_trigger 必须通过。"
+}

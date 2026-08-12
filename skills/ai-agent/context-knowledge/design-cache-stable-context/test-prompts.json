@@ -1,0 +1,59 @@
+{
+  "skill": "design-cache-stable-context",
+  "version": "0.1.0",
+  "source_book": "《深入理解 AI Agent：设计原理与工程实践》 — 李博杰",
+  "darwin_compatible": true,
+  "test_cases": [
+    {
+      "id": "should-trigger-01",
+      "type": "should_trigger",
+      "prompt": "我们在 system prompt 顶部写当前时间和 request_id，内容只变一行，prompt cache hit rate 却从 80% 掉到 5%。上下文应该怎么排？",
+      "expected_behavior": "应激活 design-cache-stable-context；首个动作是定位每轮首个变化 token，把时间和 request_id 移到稳定规则、工具 schema 之后的动态后缀。",
+      "notes": "正面场景：动态字段破坏稳定前缀。"
+    },
+    {
+      "id": "should-trigger-02",
+      "type": "should_trigger",
+      "prompt": "同一批 60 个工具每次启动都从 map 随机遍历注册，schema 语义没变但 TTFT 抖动很大。does tool ordering break prompt caching?",
+      "expected_behavior": "应激活 design-cache-stable-context；首个动作是固定工具 schema 的选择、排序和序列化字节，并用缓存 key 或前缀 hash 验证命中。",
+      "notes": "正面场景：非确定性工具顺序使 token 前缀变化。"
+    },
+    {
+      "id": "should-trigger-03",
+      "type": "should_trigger",
+      "prompt": "Agent 会在任务中途加载一个 Skill。我们不知道应把新说明插回 system prompt 顶部，还是追加到轨迹尾部，既要正确又要保住 KV cache。",
+      "expected_behavior": "应激活 design-cache-stable-context；首个动作是画出稳定目录前缀与按需详情动态后缀，禁止在已缓存前缀中间插入新内容。",
+      "notes": "正面场景：动态能力加载后的 token 放置与缓存边界。"
+    },
+    {
+      "id": "should-not-trigger-01",
+      "type": "should_not_trigger",
+      "prompt": "上下文只有 60K/128K，但 Agent 已开始忘记早期约束、重复失败方案。缓存命中正常，我们该滑窗、摘要还是隔离子任务？",
+      "expected_behavior": "不应激活 design-cache-stable-context，应激活 isolate-before-compressing-context；首个动作是按信息价值识别可隔离噪声和必须保留的失败证据。",
+      "notes": "跨 Skill 混淆诱饵：问题是上下文腐化，不是稳定前缀复用。"
+    },
+    {
+      "id": "should-not-trigger-02",
+      "type": "should_not_trigger",
+      "prompt": "长任务每轮都重新扫描历史计算 pending jobs 和剩余预算，偶尔还数错。前缀布局没有性能问题。",
+      "expected_behavior": "不应激活 design-cache-stable-context，应激活 distill-explicit-agent-state；首个动作是定义由事件确定性归约的 pending 与 budget 状态字段。",
+      "notes": "跨 Skill 混淆诱饵：问题是状态计算，不是状态 token 的放置。"
+    },
+    {
+      "id": "edge-01",
+      "type": "edge_case",
+      "prompt": "我们每天只有几十次、每次 800 token 的短请求，供应商也没提供 prompt caching 计费收益。值得重构 stable prefix 吗？",
+      "expected_behavior": "暂不激活 design-cache-stable-context；已知流量短小且供应商无缓存能力或收益时，可直接保持清晰的简单上下文。只有这些前提不确定时才先补测复用比例、命中能力和成本。",
+      "notes": "边界：低流量短调用可能没有可证明的缓存收益。"
+    },
+    {
+      "id": "edge-02",
+      "type": "edge_case",
+      "prompt": "为了提高 cache hit，团队想把刚更新的安全规则继续留在旧稳定前缀，等月底统一刷新。这样可以吗？",
+      "expected_behavior": "应激活 design-cache-stable-context，但必须拒绝冻结陈旧规则；首个动作是先切换带安全规则版本的新前缀，再评估同版本请求内的缓存复用。",
+      "notes": "边界：正确性和安全更新优先于缓存命中。"
+    }
+  ],
+  "minimum_pass_rate": 0.8,
+  "notes": "7 条压力测试：3 条 should_trigger、2 条 should_not_trigger、2 条 edge_case；全部 should_not_trigger 必须通过。"
+}

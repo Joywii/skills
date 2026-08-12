@@ -1,0 +1,59 @@
+{
+  "skill": "measure-capability-vs-reliability",
+  "version": "0.1.0",
+  "source_book": "《深入理解 AI Agent：设计原理与工程实践》 — 李博杰",
+  "darwin_compatible": true,
+  "test_cases": [
+    {
+      "id": "should-trigger-01",
+      "type": "should_trigger",
+      "prompt": "漏洞挖掘 Agent 单次成功率 60%，团队说 Pass@5 接近 99% 就能上线自动修生产。这个结论哪里错了？",
+      "expected_behavior": "应激活 measure-capability-vs-reliability；首个动作是分别计算并解释 Pass@5 与连续 Pass^5，指出探索上限不能证明生产可靠性。",
+      "notes": "正面场景：同一单次成功率在探索与高风险生产中含义相反。"
+    },
+    {
+      "id": "should-trigger-02",
+      "type": "should_trigger",
+      "prompt": "欺诈申诉 Agent 单次通过率 80%，如果连续处理 10 个账户，一次都不能错，应该看什么指标？",
+      "expected_behavior": "应激活 measure-capability-vs-reliability；首个动作是确认连续任务口径并计算或估计 Pass^10，同时保留安全、合规否决项。",
+      "notes": "正面场景：连续业务可靠性指标。"
+    },
+    {
+      "id": "should-trigger-03",
+      "type": "should_trigger",
+      "prompt": "我们评估自主科研 Agent，允许跑 20 条轨迹后由专家挑一条最好结果；同时又想知道它能否每周稳定交付。请给两套指标口径。",
+      "expected_behavior": "应激活 measure-capability-vs-reliability；首个动作是把候选筛选的能力上限与连续交付可靠性拆成 Pass@k/Best@k 和 Pass^k 两组报告。",
+      "notes": "正面场景：探索型与生产型目标需要双指标。"
+    },
+    {
+      "id": "should-not-trigger-01",
+      "type": "should_not_trigger",
+      "prompt": "我们连任务是否成功都定义不清，也没有可重置环境。请从数据集、环境、工具、结果验证和 Judge 校准开始搭评测系统。",
+      "expected_behavior": "不应激活 measure-capability-vs-reliability；应激活 build-reproducible-agent-evals，首个动作是先定义成功契约与可重置环境，再谈统计指标。",
+      "notes": "跨 skill 混淆诱饵：评估基础设施尚未成立，不能先套 Pass 指标。"
+    },
+    {
+      "id": "should-not-trigger-02",
+      "type": "should_not_trigger",
+      "prompt": "我不是在选报告指标，而是在训练网页操作 Agent。怎样把 DOM 状态差、权限规则和禁止动作组合成不会被钻空子的 reward？",
+      "expected_behavior": "不应激活 measure-capability-vs-reliability；应激活 design-verifiable-agent-rewards，首个动作是定义可执行结果验证器、过程否决项与奖励漏洞测试。",
+      "notes": "跨 skill 混淆诱饵：生产指标与训练奖励契约不同。"
+    },
+    {
+      "id": "edge-01",
+      "type": "edge_case",
+      "prompt": "创意海报没有明确的通过标准，只能让人说喜欢不喜欢。现在能直接算 Pass@5 吗？",
+      "expected_behavior": "不应直接激活 measure-capability-vs-reliability 并计算；首个动作是要求先定义可复核的质量 Rubric、筛选者和通过阈值，否则 Pass@k 没有稳定语义。",
+      "notes": "边界：没有可判断的 pass，指数聚合指标没有意义。"
+    },
+    {
+      "id": "edge-02",
+      "type": "edge_case",
+      "prompt": "五次重试共享同一缓存和服务故障，明显不是独立采样，但团队仍想用 p 的幂计算连续可靠性。",
+      "expected_behavior": "应激活 measure-capability-vs-reliability；首个动作是确认相关性和任务口径，拒绝直接套独立伯努利公式，并要求用分组实测或相关模型估计。",
+      "notes": "边界：指标仍适用，但独立性假设不成立时计算方式必须调整。"
+    }
+  ],
+  "minimum_pass_rate": 0.8,
+  "notes": "3 条 should_trigger、2 条 should_not_trigger、2 条 edge_case；全部 should_not_trigger 必须通过，其中包含同书兄弟 Skill 混淆测试。"
+}

@@ -1,0 +1,59 @@
+{
+  "skill": "route-agent-updates",
+  "version": "0.1.0",
+  "source_book": "《深入理解 AI Agent：设计原理与工程实践》 — 李博杰",
+  "darwin_compatible": true,
+  "test_cases": [
+    {
+      "id": "should-trigger-01",
+      "type": "should_trigger",
+      "prompt": "复盘发现客服必须记住一条新例外，但我们不确定该放知识库、系统提示、服务端规则还是模型权重。请给出选择方法。",
+      "expected_behavior": "应激活 route-agent-updates，并首先把例外改写成带触发条件、期望行为、例外和来源的原子能力，再比较四种载体。",
+      "notes": "正面场景：经验载体尚未决定，需要四载体路由。"
+    },
+    {
+      "id": "should-trigger-02",
+      "type": "should_trigger",
+      "prompt": "转账审批规则长期稳定，而且绝不能被绕过。团队有人想写进 Prompt，有人想微调模型，也有人建议服务端状态机，应该怎么选？",
+      "expected_behavior": "应激活 route-agent-updates，并首先判断该能力是否可形式化且要求不可绕过；应将确定审批与权限放入程序门控，而非仅放指令或参数。",
+      "notes": "正面场景：以可验证性和不可绕过性选择程序载体。"
+    },
+    {
+      "id": "should-trigger-03",
+      "type": "should_trigger",
+      "prompt": "一个视觉质检经验既包括会变化的缺陷标准，也包括审核步骤和很难用规则描述的图像识别能力。长期更新应该拆到哪里？",
+      "expected_behavior": "应激活 route-agent-updates，并首先拆分事实、语言流程和统计感知能力，再分别路由到知识、指令与参数并指定唯一真源。",
+      "notes": "正面场景：同一能力需拆成多载体组合。"
+    },
+    {
+      "id": "should-not-trigger-01",
+      "type": "should_not_trigger",
+      "prompt": "我们已经确认这个缺口必须进入模型参数：输出协议不稳定且策略需要交互探索。现在只想决定 SFT、直接 RL 还是先 SFT 后 RL。",
+      "expected_behavior": "不应激活 route-agent-updates，应激活 choose-sft-or-rl，并首先检查动作可解析率、策略缺口和 RL 准入条件。",
+      "notes": "跨 Skill 混淆诱饵：参数载体已确定，只剩参数训练方法选择。"
+    },
+    {
+      "id": "should-not-trigger-02",
+      "type": "should_not_trigger",
+      "prompt": "载体已经定好了：知识、Skill、代码和权重都可能产生候选版本。请设计生产轨迹到离线提案、独立测试、灰度发布和自动回滚的完整循环。",
+      "expected_behavior": "不应激活 route-agent-updates，应激活 govern-continuous-agent-evolution，并首先分离在线执行与离线进化权限，固定可信根。",
+      "notes": "跨 Skill 混淆诱饵：问题是更新发布生命周期，不是载体选择。"
+    },
+    {
+      "id": "edge-01",
+      "type": "edge_case",
+      "prompt": "我们已经明确要做跨会话用户记忆，现在只是不知道新偏好与旧偏好冲突时如何保存来源、有效期和删除记录。",
+      "expected_behavior": "不应激活 route-agent-updates，应激活 build-evidence-backed-memory，并首先定义追加证据记录、冲突关系和时间作用域；知识载体已经确定。",
+      "notes": "边界：知识载体已选定，后续是该载体的写入治理。"
+    },
+    {
+      "id": "edge-02",
+      "type": "edge_case",
+      "prompt": "同一条退款能力同时包含当前政策事实、可解释的处理原则和绝不能越过的金额上限，必须只选一种实现吗？",
+      "expected_behavior": "应激活 route-agent-updates，并首先把混合能力拆成原子更新；允许知识、指令与程序组合，但要指定事实真源、优先级和独立验证。",
+      "notes": "边界：测试是否错误强迫互补载体互斥。"
+    }
+  ],
+  "minimum_pass_rate": 0.8,
+  "notes": "共 7 条：3 条 should_trigger、2 条 should_not_trigger、2 条 edge_case。全部 should_not_trigger 必须通过，其中包含 choose-sft-or-rl 与 govern-continuous-agent-evolution 的跨 Skill 混淆测试。"
+}

@@ -1,0 +1,59 @@
+{
+  "skill": "isolate-before-compressing-context",
+  "version": "0.1.0",
+  "source_book": "《深入理解 AI Agent：设计原理与工程实践》 — 李博杰",
+  "darwin_compatible": true,
+  "test_cases": [
+    {
+      "id": "should-trigger-01",
+      "type": "should_trigger",
+      "prompt": "会话还没到 128K 上限，Agent 却开始忽略早期约束并重新尝试已经失败的方案。context rot before overflow 应该怎么治？",
+      "expected_behavior": "应激活 isolate-before-compressing-context；首个动作是按决策、约束、失败证据和可重建噪声给现有上下文分层，而不是先机械截掉最旧消息。",
+      "notes": "正面场景：上下文腐化早于容量溢出。"
+    },
+    {
+      "id": "should-trigger-02",
+      "type": "should_trigger",
+      "prompt": "主任务要比较十个供应商，每个网站都会产生大量浏览和解析过程，最终只需要价格、证据链接和未决项。如何避免所有中间轨迹污染主上下文？",
+      "expected_behavior": "应激活 isolate-before-compressing-context；首个动作是为每个独立搜索定义自包含输入与结构化移交包，只把结果、来源和未决项回传主上下文。",
+      "notes": "正面场景：高噪声独立探索适合先隔离。"
+    },
+    {
+      "id": "should-trigger-03",
+      "type": "should_trigger",
+      "prompt": "我们每轮都让 LLM 重写整段摘要，几轮后它忘了为什么放弃方案 B，还把旧错误事实带进新摘要。怎样重新设计 compaction？",
+      "expected_behavior": "应激活 isolate-before-compressing-context；首个动作是停止递归摘要，回到原始证据识别可隔离内容，并列出必须保留的决策理由、失败路径和来源。",
+      "notes": "正面场景：递归压缩造成代际漂移和负证据丢失。"
+    },
+    {
+      "id": "should-not-trigger-01",
+      "type": "should_not_trigger",
+      "prompt": "上下文内容很干净，唯一问题是 system prompt 顶部每轮插入时间戳，导致 prompt cache miss 和 TTFT 上升。",
+      "expected_behavior": "不应激活 isolate-before-compressing-context，应激活 design-cache-stable-context；首个动作是定位首个变化 token 并把时间戳移到动态后缀。",
+      "notes": "跨 Skill 混淆诱饵：只有缓存布局问题，没有噪声或容量治理需求。"
+    },
+    {
+      "id": "should-not-trigger-02",
+      "type": "should_not_trigger",
+      "prompt": "历史很短，但 Agent 需要可靠知道当前有几个 pending jobs、哪个锁有效、邮件是否已经发过。",
+      "expected_behavior": "不应激活 isolate-before-compressing-context，应激活 distill-explicit-agent-state；首个动作是从事件确定性归约 pending、lock 和已完成副作用字段。",
+      "notes": "跨 Skill 混淆诱饵：只需高价值状态投影，不应压缩整段轨迹。"
+    },
+    {
+      "id": "edge-01",
+      "type": "edge_case",
+      "prompt": "三个子任务每一步都依赖同一个快速变化的共享草稿，拆开后必须频繁同步。是否仍应优先子 Agent 隔离？",
+      "expected_behavior": "可调用 isolate-before-compressing-context 做边界诊断；首个动作是画共享依赖和同步频率，若移交成本高于噪声收益则拒绝隔离，保留共享上下文并只归档可重建输出。",
+      "notes": "边界：强耦合共享状态可能使隔离适得其反。"
+    },
+    {
+      "id": "edge-02",
+      "type": "edge_case",
+      "prompt": "日志分析很适合隔离，但目前给子任务的消息只有‘看看刚才那个报错’，目标、日志范围和验收都在父对话里。可以直接拆吗？",
+      "expected_behavior": "应激活 isolate-before-compressing-context，但先判停；首个动作是补齐自包含移交包的目标、输入引用、约束、完成标准和返回 schema，再启动隔离。",
+      "notes": "边界：可隔离任务缺少自包含输入时不能直接委派。"
+    }
+  ],
+  "minimum_pass_rate": 0.8,
+  "notes": "7 条压力测试：3 条 should_trigger、2 条 should_not_trigger、2 条 edge_case；全部 should_not_trigger 必须通过。"
+}

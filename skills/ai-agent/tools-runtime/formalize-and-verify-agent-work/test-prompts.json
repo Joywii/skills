@@ -1,0 +1,59 @@
+{
+  "skill": "formalize-and-verify-agent-work",
+  "version": "0.1.0",
+  "source_book": "《深入理解 AI Agent：设计原理与工程实践》 — 李博杰",
+  "darwin_compatible": true,
+  "test_cases": [
+    {
+      "id": "should-trigger-01",
+      "type": "should_trigger",
+      "prompt": "跨地区税务条款互相引用，模型经常漏掉时段和例外。我想让它理解自然语言，但最终税额不能靠口算，怎么拆分？",
+      "expected_behavior": "应激活 formalize-and-verify-agent-work；首个动作是提取主体、时段、变量、条件和例外，形成可审查的约束或代码，再交给确定性执行器求值。",
+      "notes": "正面场景：自然语言语义理解与精确计算分工。"
+    },
+    {
+      "id": "should-trigger-02",
+      "type": "should_trigger",
+      "prompt": "资格审批同时有年龄、居住时间、收入区间和互斥例外。LLM 每次解释略有不同，能否把规则变成 constraint solver 并验证边界？",
+      "expected_behavior": "应激活 formalize-and-verify-agent-work；首个动作是建立变量、约束、优先级和例外表，并为边界值准备确定性断言。",
+      "notes": "正面场景：多约束政策需要形式化和边界验证。"
+    },
+    {
+      "id": "should-trigger-03",
+      "type": "should_trigger",
+      "prompt": "浏览器 Agent 每次都重新探索同一个报表流程。我想把成功轨迹编译成可复用工作流，但页面变化时必须停止而不是盲点旧坐标。",
+      "expected_behavior": "应激活 formalize-and-verify-agent-work；首个动作是把轨迹参数化为步骤，并为每一步定义执行前状态、执行后状态和检查失败时的回退。",
+      "notes": "正面场景：把重复 GUI 轨迹形式化为可验证工作流。"
+    },
+    {
+      "id": "should-not-trigger-01",
+      "type": "should_not_trigger",
+      "prompt": "我要从零搭一个客服 Agent benchmark：可重置订单库、用户模拟器、任务集、过程 veto、LLM Judge 校准和回归统计都要包括。",
+      "expected_behavior": "不应激活 formalize-and-verify-agent-work；应激活 build-reproducible-agent-evals，首个动作是定义成功契约、可重置环境状态和任务分布。",
+      "notes": "跨 skill 混淆诱饵：这是系统评估基础设施，不是单任务形式化。"
+    },
+    {
+      "id": "should-not-trigger-02",
+      "type": "should_not_trigger",
+      "prompt": "品牌报告的事实和数字都能自动检查，但叙事是否可信、图表是否误导仍是开放判断。我想用另一个模型读取渲染结果独立复核。",
+      "expected_behavior": "不应激活 formalize-and-verify-agent-work 作为主技能；应激活 build-independent-review-loops，首个动作是定义 Reviewer 可见的渲染证据、独立性和结构化退回标准。",
+      "notes": "跨 skill 混淆诱饵：不可完全形式化的开放质量判断需要异源审核。"
+    },
+    {
+      "id": "edge-01",
+      "type": "edge_case",
+      "prompt": "退款政策有明确金额和日期门槛，但特殊困难是否酌情补偿只能人工判断。是不是所有规则都应该写进代码？",
+      "expected_behavior": "应激活 formalize-and-verify-agent-work 处理硬约束；首个动作是分离可形式化门槛与不可形式化裁量，只把前者编码，后者保留人工或独立审核。",
+      "notes": "边界：部分可形式化时应分层，不能把价值判断伪装成确定性规则。"
+    },
+    {
+      "id": "edge-02",
+      "type": "edge_case",
+      "prompt": "我们已经有确定性的订单状态验证器，现在要把它转换成训练 Agent 的奖励函数并处理奖励漏洞。",
+      "expected_behavior": "不应继续由 formalize-and-verify-agent-work 主导；应转向 design-verifiable-agent-rewards，首个动作是把环境结果验证、过程否决项和奖励聚合契约分开。",
+      "notes": "边界：形式化验证器完成后，训练奖励的设计属于可验证奖励技能。"
+    }
+  ],
+  "minimum_pass_rate": 0.8,
+  "notes": "3 条 should_trigger、2 条 should_not_trigger、2 条 edge_case；全部 should_not_trigger 必须通过，其中包含同书兄弟 Skill 混淆测试。"
+}

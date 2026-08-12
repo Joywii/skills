@@ -1,0 +1,59 @@
+{
+  "skill": "attribute-first-errors",
+  "version": "0.1.0",
+  "source_book": "《深入理解 AI Agent：设计原理与工程实践》 — 李博杰",
+  "darwin_compatible": true,
+  "test_cases": [
+    {
+      "id": "should-trigger-01",
+      "type": "should_trigger",
+      "prompt": "订票 Agent 最终因 API 限流失败，但用户更早被重复扣款。事故已稳定，完整轨迹和环境快照都在，怎么确认真正根因？",
+      "expected_behavior": "应激活 attribute-first-errors；首个动作是冻结版本化证据包并按时间顺序寻找首个不可接受偏离，而不是从最后限流错误倒推。",
+      "notes": "正面场景：最终报错与首个因果错误不一致。"
+    },
+    {
+      "id": "should-trigger-02",
+      "type": "should_trigger",
+      "prompt": "Android 自动化的失败集中成三类，可能是提示、工具协议或模型能力。我们想每次只改一个变量，用固定任务证明是哪一层导致首错。",
+      "expected_behavior": "应激活 attribute-first-errors；首个动作是为每个失败簇定位首个致偏步骤并建立可证伪的单变量因果假设。",
+      "notes": "正面场景：失败簇、单变量实验与配对回归。"
+    },
+    {
+      "id": "should-trigger-03",
+      "type": "should_trigger",
+      "prompt": "生产里收集到过早结束、丢引号和误用编辑工具三种 bad case。怎样把它们变成前缀回归，并判断哪些才适合做训练数据？",
+      "expected_behavior": "应激活 attribute-first-errors；首个动作是定位每条轨迹的首错责任层，冻结首错前状态并定义可接受动作集与禁止动作。",
+      "notes": "正面场景：从真实坏案例到轨迹前缀与训练边界。"
+    },
+    {
+      "id": "should-not-trigger-01",
+      "type": "should_not_trigger",
+      "prompt": "支付 Agent 仍在重复扣款，重试风暴还在扩大。现在需要立即停止、核对状态、熔断并转人工，事后再分析根因。",
+      "expected_behavior": "不应激活 attribute-first-errors；应激活 engineer-agent-failure-closure，首个动作是隔离副作用、停止原样重试并查询真实支付状态。",
+      "notes": "跨 skill 混淆诱饵：在线事故先止损和恢复，不能先做完整事后归因。"
+    },
+    {
+      "id": "should-not-trigger-02",
+      "type": "should_not_trigger",
+      "prompt": "Agent 经常失败，但目前只有最终回复，不知道它是否看到了必要信息、是否有可用动作、策略是否选错或工具结果是否回到上下文。",
+      "expected_behavior": "不应激活 attribute-first-errors；应激活 diagnose-agent-boundaries，首个动作是按观察、策略、动作、反馈四面补证据并定位故障槽。",
+      "notes": "跨 skill 混淆诱饵：没有首错候选和可重放轨迹时先做粗粒度边界诊断。"
+    },
+    {
+      "id": "edge-01",
+      "type": "edge_case",
+      "prompt": "轨迹显示一个确定性空指针总在同一行发生，已有稳定失败单测，也没有更早异常动作。还需要做首错配对研究吗？",
+      "expected_behavior": "不应激活 attribute-first-errors 的完整流程；首个动作是直接修复已知单点 bug，并运行现有失败测试与回归。",
+      "notes": "边界：根因明确且已有直接测试时不需要昂贵的归因实验。"
+    },
+    {
+      "id": "edge-02",
+      "type": "edge_case",
+      "prompt": "故障已停止且可稳定重放。四面诊断已定位到工具恢复策略，现在要判断是第一次超时后的重试，还是后续限流才造成任务偏离。",
+      "expected_behavior": "应激活 attribute-first-errors；首个动作是冻结第一次超时前的轨迹前缀，比较可接受恢复动作与实际重试，并设计只修改恢复策略的配对实验。",
+      "notes": "边界：粗粒度故障层已经明确后，进入首个因果分叉验证。"
+    }
+  ],
+  "minimum_pass_rate": 0.8,
+  "notes": "3 条 should_trigger、2 条 should_not_trigger、2 条 edge_case；全部 should_not_trigger 必须通过，其中包含同书兄弟 Skill 混淆测试。"
+}

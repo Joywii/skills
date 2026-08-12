@@ -1,0 +1,59 @@
+{
+  "skill": "engineer-agent-failure-closure",
+  "version": "0.1.0",
+  "source_book": "《深入理解 AI Agent：设计原理与工程实践》 — 李博杰",
+  "darwin_compatible": true,
+  "test_cases": [
+    {
+      "id": "should-trigger-01",
+      "type": "should_trigger",
+      "prompt": "下单 API 超时但可能已扣款，Agent 现在直接重试。请设计不会重复扣款的检测、恢复、熔断和人工升级状态机。",
+      "expected_behavior": "应激活 engineer-agent-failure-closure；首个动作是把故障分类为提交状态不明，查询真实状态或使用幂等键，而不是原样重放请求。",
+      "notes": "正面场景：非幂等副作用与状态不明恢复。"
+    },
+    {
+      "id": "should-trigger-02",
+      "type": "should_trigger",
+      "prompt": "邮件 Agent 有后台任务、pending 占位符和批量事件。用户中途取消时它会漏掉已完成结果，还把占位符当最终答案，怎么重做控制流？",
+      "expected_behavior": "应激活 engineer-agent-failure-closure；首个动作是为任务 ID、pending、真实完成、取消传播和批量逐项状态建立显式状态机。",
+      "notes": "正面场景：异步部分完成、事件完整性与取消。"
+    },
+    {
+      "id": "should-trigger-03",
+      "type": "should_trigger",
+      "prompt": "模型连续 30 次用同样参数调用失败工具，后台重试还挤占主请求配额。怎样做进展检测、retry budget 和 circuit breaker？",
+      "expected_behavior": "应激活 engineer-agent-failure-closure；首个动作是按可重试性和重复指纹分类错误，分别设置变化请求、退避预算、熔断和终止升级。",
+      "notes": "正面场景：无进展循环与重试风暴。"
+    },
+    {
+      "id": "should-not-trigger-01",
+      "type": "should_not_trigger",
+      "prompt": "事故已经结束。我有完整轨迹，最后是 API 限流，但更早发生了重复扣款。想找第一处致偏动作并做固定前缀的单变量回归。",
+      "expected_behavior": "不应激活 engineer-agent-failure-closure；应激活 attribute-first-errors，首个动作是冻结证据包并按时间顺序定位最早不可接受偏离。",
+      "notes": "跨 skill 混淆诱饵：稳定后的因果归因与配对修复，不是在线恢复。"
+    },
+    {
+      "id": "should-not-trigger-02",
+      "type": "should_not_trigger",
+      "prompt": "Agent 失败了，但我们还不知道是没看到必要信息、模型选错策略、缺少动作接口，还是执行结果没有反馈回来。先帮我系统定位故障面。",
+      "expected_behavior": "不应激活 engineer-agent-failure-closure；应激活 diagnose-agent-boundaries，首个动作是按观察、策略、动作、反馈四面收集证据并确定故障槽。",
+      "notes": "跨 skill 混淆诱饵：责任层未知时先做边界诊断，再谈该层恢复策略。"
+    },
+    {
+      "id": "edge-01",
+      "type": "edge_case",
+      "prompt": "一个无副作用的内部只读查询偶发 502，我手工重试一次就成功，还需要建立完整熔断状态机吗？",
+      "expected_behavior": "不应激活 engineer-agent-failure-closure 的完整流程；首个动作是采用有限次数、带退避的简单重试和基本日志，只有出现重复、资源放大或业务风险时再升级。",
+      "notes": "边界：低风险一次性可恢复故障不应过度工程化。"
+    },
+    {
+      "id": "edge-02",
+      "type": "edge_case",
+      "prompt": "批量退款 20 笔时第 8 笔网络断开，前 7 笔可能部分成功。任务还能继续，但不能重复退款，也不能只记录最后一笔事件。",
+      "expected_behavior": "应激活 engineer-agent-failure-closure；首个动作是为每笔退款建立独立幂等键和状态，先核对已提交结果，再决定接续、补偿、终止或人工升级。",
+      "notes": "边界：任务可继续不代表可以盲重试，部分完成和非幂等性要求完整闭环。"
+    }
+  ],
+  "minimum_pass_rate": 0.8,
+  "notes": "3 条 should_trigger、2 条 should_not_trigger、2 条 edge_case；全部 should_not_trigger 必须通过，其中包含同书兄弟 Skill 混淆测试。"
+}

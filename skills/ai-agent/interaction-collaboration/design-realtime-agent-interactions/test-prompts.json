@@ -1,0 +1,59 @@
+{
+  "skill": "design-realtime-agent-interactions",
+  "version": "0.1.0",
+  "source_book": "《深入理解 AI Agent：设计原理与工程实践》 — 李博杰",
+  "darwin_compatible": true,
+  "test_cases": [
+    {
+      "id": "should-trigger-01",
+      "type": "should_trigger",
+      "prompt": "我们在做全双工语音客服：ASR partial 不断变化，用户可能抢话，后台退款查询又很慢。怎样定义哪些内容能先说、哪些动作必须等 final？",
+      "expected_behavior": "应激活 design-realtime-agent-interactions，并首先列出 partial、final、pending 与副作用的可撤销性和延迟预算，再划定消费、提交和取消边界。",
+      "notes": "正面场景：连续语音、barge-in、异步工具和 partial/final 承诺并存。"
+    },
+    {
+      "id": "should-trigger-02",
+      "type": "should_trigger",
+      "prompt": "心理支持热线既要理解语速、情绪和环境声，也要求每段延迟可观测、组件可替换。该选 ASR-LLM-TTS 级联、端到端音频模型还是混合方案？",
+      "expected_behavior": "应激活 design-realtime-agent-interactions，并首先写出必须保留的声学信息、首响应/最终延迟和可观测性硬约束，再用同一真实回放比较架构。",
+      "notes": "正面场景：按信息保真、延迟与可观测性选择实时语音架构。"
+    },
+    {
+      "id": "should-trigger-03",
+      "type": "should_trigger",
+      "prompt": "前台小模型会立刻给购买建议，后台大模型几秒后经常推翻它。我们又不能让用户一直等，快慢通道该怎样协作才不会先承诺后反悔？",
+      "expected_behavior": "应激活 design-realtime-agent-interactions，并首先区分前台可撤销的维持话头与后台可提交结论，高风险建议必须等待 final 证据和统一提交门。",
+      "notes": "正面场景：实时快慢模型存在承诺冲突。"
+    },
+    {
+      "id": "should-not-trigger-01",
+      "type": "should_not_trigger",
+      "prompt": "报表导出是普通后台任务，没有音视频或流式回复。接口会返回 pending，用户可稍后取消，偶尔超时后不知道任务是否已经完成。怎么设计恢复？",
+      "expected_behavior": "不应激活 design-realtime-agent-interactions，应激活 engineer-agent-failure-closure，并首先区分未知提交状态、定义幂等查询与有限恢复状态机。",
+      "notes": "跨 Skill 混淆诱饵：普通异步工具恢复，不存在连续交互或 partial/final 语义。"
+    },
+    {
+      "id": "should-not-trigger-02",
+      "type": "should_not_trigger",
+      "prompt": "长任务有几十个 running、pending、completed job，模型每轮重读历史统计还经常把旧事件当最新。我需要一个权威状态栏和确定性 reducer。",
+      "expected_behavior": "不应激活 design-realtime-agent-interactions，应激活 distill-explicit-agent-state，并首先定义状态 schema、权威事件来源、版本和幂等 reducer。",
+      "notes": "跨 Skill 混淆诱饵：目标是状态投影而非实时交互架构。"
+    },
+    {
+      "id": "edge-01",
+      "type": "edge_case",
+      "prompt": "网页聊天只把 LLM token 边生成边显示，用户不能中途发言，也没有工具和副作用。是否需要完整的实时事件、取消和提交架构？",
+      "expected_behavior": "不应默认激活完整 design-realtime-agent-interactions；应首先确认是否存在异步竞争、打断或不可撤销承诺，若只是展示流则使用简单流式传输即可。",
+      "notes": "边界：token streaming 不自动等于全双工实时 Agent。"
+    },
+    {
+      "id": "edge-02",
+      "type": "edge_case",
+      "prompt": "机器人摄像头是连续视频流，但当前问题是机械臂执行长动作块后仍按旧画面抓取，应该从哪里下手？",
+      "expected_behavior": "不应以 design-realtime-agent-interactions 为主，应激活 build-multiscale-action-loops，并首先缩短或中断动作块，在每个有状态动作后重新观察和验证；视频传输仅作为配套。",
+      "notes": "边界：虽有连续媒体，主问题是物理动作时间尺度与旧观察。"
+    }
+  ],
+  "minimum_pass_rate": 0.8,
+  "notes": "共 7 条：3 条 should_trigger、2 条 should_not_trigger、2 条 edge_case。全部 should_not_trigger 必须通过，其中包含 engineer-agent-failure-closure 与 distill-explicit-agent-state 的跨 Skill 混淆测试。"
+}

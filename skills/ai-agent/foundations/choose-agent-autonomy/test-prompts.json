@@ -1,0 +1,59 @@
+{
+  "skill": "choose-agent-autonomy",
+  "version": "0.1.0",
+  "source_book": "《深入理解 AI Agent：设计原理与工程实践》 — 李博杰",
+  "darwin_compatible": true,
+  "test_cases": [
+    {
+      "id": "should-trigger-01",
+      "type": "should_trigger",
+      "prompt": "我要做合同审查助手，不确定该用一次 LLM 调用、固定工作流，还是让 Agent 自己决定查哪些附件和条款。请给出架构选择。",
+      "expected_behavior": "应激活 choose-agent-autonomy；首个动作是把合同流程按路径能否预枚举、结果能否自动验证和副作用风险三项分区，而不是直接选择最自治方案。",
+      "notes": "正面场景：典型单调用、工作流、自主 Agent 架构选型。"
+    },
+    {
+      "id": "should-trigger-02",
+      "type": "should_trigger",
+      "prompt": "现有工单流程 95% 都是固定步骤，只有资料缺失时要根据用户回答临时追问。团队准备整条链改成 Agent，这合理吗？",
+      "expected_behavior": "应激活 choose-agent-autonomy；首个动作是拆出固定主干与不可枚举异常分支，优先保留确定性工作流并只给异常分支局部自治。",
+      "notes": "正面场景：防止固定主干被过度 Agent 化。"
+    },
+    {
+      "id": "should-trigger-03",
+      "type": "should_trigger",
+      "prompt": "部署助手能自动分析日志和生成变更，但真正执行生产发布风险很高。how much autonomy should we grant，哪些地方必须人工确认？",
+      "expected_behavior": "应激活 choose-agent-autonomy；首个动作是标出只读探索、可回滚动作和不可逆提交点，为每段分别定义验证器、权限与人工门。",
+      "notes": "正面场景：按副作用风险分配局部自治。"
+    },
+    {
+      "id": "should-not-trigger-01",
+      "type": "should_not_trigger",
+      "prompt": "已上线 Agent 的搜索工具返回了正确文档，但结果没有进入下一轮上下文，模型因此反复搜索。帮我定位现有故障。",
+      "expected_behavior": "不应激活 choose-agent-autonomy，应激活 diagnose-agent-boundaries；首个动作是核对工具结果到模型观察的反馈链，而不是重新选择自治等级。",
+      "notes": "跨 Skill 混淆诱饵：这是具体生产故障，架构模式不是当前问题。"
+    },
+    {
+      "id": "should-not-trigger-02",
+      "type": "should_not_trigger",
+      "prompt": "整个应用已经确定用单 Agent；现在只想为法规问答选择 one-shot RAG、hybrid retrieval 还是多跳 Agentic RAG。",
+      "expected_behavior": "不应激活 choose-agent-autonomy，应激活 choose-rag-retrieval-mode；首个动作是按单跳、多跳或全库聚合分类查询几何。",
+      "notes": "跨 Skill 混淆诱饵：控制流选择仅限检索子系统。"
+    },
+    {
+      "id": "edge-01",
+      "type": "edge_case",
+      "prompt": "审批规则有两百条，看起来很复杂，但每条都能编码，所有结果也有数据库约束。规则很多是不是就应该用自主 Agent？",
+      "expected_behavior": "应激活 choose-agent-autonomy，但结论应拒绝高自治；首个动作是确认路径可枚举和验收可自动化，优先确定性程序或工作流。",
+      "notes": "边界：规则数量多不等于路径动态。"
+    },
+    {
+      "id": "edge-02",
+      "type": "edge_case",
+      "prompt": "我只有一个无工具的短分类 prompt，想让措辞更稳定。需要先做自治等级设计吗？",
+      "expected_behavior": "不应激活 choose-agent-autonomy；首个动作是直接明确分类标签、输入输出示例和验收集，不为单步无副作用调用引入编排决策。",
+      "notes": "边界：单条提示优化不构成多步自治选型。"
+    }
+  ],
+  "minimum_pass_rate": 0.8,
+  "notes": "7 条压力测试：3 条 should_trigger、2 条 should_not_trigger、2 条 edge_case；全部 should_not_trigger 必须通过。"
+}

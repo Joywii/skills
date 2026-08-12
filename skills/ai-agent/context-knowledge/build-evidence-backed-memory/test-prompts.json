@@ -1,0 +1,59 @@
+{
+  "skill": "build-evidence-backed-memory",
+  "version": "0.1.0",
+  "source_book": "《深入理解 AI Agent：设计原理与工程实践》 — 李博杰",
+  "darwin_compatible": true,
+  "test_cases": [
+    {
+      "id": "should-trigger-01",
+      "type": "should_trigger",
+      "prompt": "用户上个月说不吃海鲜，今天又说商务宴请时可以吃贝类。新记录应该覆盖旧记忆，还是按场景和时间并存？",
+      "expected_behavior": "应激活 build-evidence-backed-memory；首个动作是保存两条带来源、时间和适用范围的原子证据，暂不破坏性覆盖。",
+      "notes": "正面场景：跨会话事实冲突需要范围化和版本化。"
+    },
+    {
+      "id": "should-trigger-02",
+      "type": "should_trigger",
+      "prompt": "知识库一直用摘要更新摘要，半年后结论已经追不回原始工单。如何让 overview、checkpoint 和索引都能重建？",
+      "expected_behavior": "应激活 build-evidence-backed-memory；首个动作是恢复或登记原始证据为不可替代真源，并标记现有摘要为带版本的派生视图。",
+      "notes": "正面场景：派生物成为真源导致代际漂移。"
+    },
+    {
+      "id": "should-trigger-03",
+      "type": "should_trigger",
+      "prompt": "我们想从生产轨迹沉淀可复用经验，但当前只有一次成功案例和模型自己的反思。怎样避免把偶然路径写成长期知识？",
+      "expected_behavior": "应激活 build-evidence-backed-memory；首个动作是把单次轨迹放入证据池而非正式记忆，要求跨轨迹评价、反例和来源后再生成派生规则。",
+      "notes": "正面场景：未验证轨迹不能直接晋升为长期经验。"
+    },
+    {
+      "id": "should-not-trigger-01",
+      "type": "should_not_trigger",
+      "prompt": "当前这次部署任务需要跟踪 TODO、pending jobs、锁和已经执行的副作用，任务结束后都不再复用。",
+      "expected_behavior": "不应激活 build-evidence-backed-memory，应激活 distill-explicit-agent-state；首个动作是从本次任务事件归约权威运行状态。",
+      "notes": "跨 Skill 混淆诱饵：当前任务状态不属于跨会话记忆。"
+    },
+    {
+      "id": "should-not-trigger-02",
+      "type": "should_not_trigger",
+      "prompt": "知识写入、来源、冲突和版本都已经可靠；现在只需要决定用户查询时用 one-shot、hybrid 还是 multi-hop retrieval。",
+      "expected_behavior": "不应激活 build-evidence-backed-memory，应激活 choose-rag-retrieval-mode；首个动作是按查询几何和证据充分性选择读路径。",
+      "notes": "跨 Skill 混淆诱饵：这是知识读路径，不是写入生命周期。"
+    },
+    {
+      "id": "edge-01",
+      "type": "edge_case",
+      "prompt": "用户随口说了一个与任务无关的敏感健康信息，未来是否有用不确定。为了个性化要不要永久记住？",
+      "expected_behavior": "不应直接激活持久化流程；首个动作是检查明确用途、用户同意、最小保留和删除规则，缺少正当复用价值时不写长期记忆。",
+      "notes": "边界：技术上可存不等于应当保存，敏感信息需额外治理。"
+    },
+    {
+      "id": "edge-02",
+      "type": "edge_case",
+      "prompt": "两条政策记录表面冲突：一条适用于欧盟企业客户，另一条适用于美国个人客户，后者时间更新。应该保留最新一条吗？",
+      "expected_behavior": "应激活 build-evidence-backed-memory；首个动作是比较主体、地域和有效范围，分别追加并生成按范围选择的当前视图，而不是按时间强行覆盖。",
+      "notes": "边界：最新记录不一定语义替代旧记录。"
+    }
+  ],
+  "minimum_pass_rate": 0.8,
+  "notes": "7 条压力测试：3 条 should_trigger、2 条 should_not_trigger、2 条 edge_case；全部 should_not_trigger 必须通过。"
+}

@@ -1,0 +1,59 @@
+{
+  "skill": "build-multiscale-action-loops",
+  "version": "0.1.0",
+  "source_book": "《深入理解 AI Agent：设计原理与工程实践》 — 李博杰",
+  "darwin_compatible": true,
+  "test_cases": [
+    {
+      "id": "should-trigger-01",
+      "type": "should_trigger",
+      "prompt": "浏览器 Agent 根据一张截图连续点五次，页面第一次点击后已经跳转，后面都点错。怎样改成真正的闭环执行？",
+      "expected_behavior": "应激活 build-multiscale-action-loops，并首先定义页面真实终态和原子动作后置条件，要求每次有状态点击后等待稳定、重新观察再继续。",
+      "notes": "正面场景：Computer Use 使用旧截图开环执行。"
+    },
+    {
+      "id": "should-trigger-02",
+      "type": "should_trigger",
+      "prompt": "团队想让 LLM 直接以 5 Hz 输出机械臂关节角，但底层控制需要 200 Hz，还要限速、碰撞检测和急停。控制职责该怎么分？",
+      "expected_behavior": "应激活 build-multiscale-action-loops，并首先划分目标、规划、受限技能和低层控制的频率、权限与接口，禁止高层模型绕过安全层输出任意关节角。",
+      "notes": "正面场景：高层规划与高频物理控制混层。"
+    },
+    {
+      "id": "should-trigger-03",
+      "type": "should_trigger",
+      "prompt": "抓取策略在模拟器和生成的未来视频里都显示成功，团队准备直接上真机。怎样安排从预测、仿真到现实的验收？",
+      "expected_behavior": "应激活 build-multiscale-action-loops，并首先明确世界模型只排序候选、仿真只做覆盖筛选，最终完成必须由真机新观察和独立安全层验收。",
+      "notes": "正面场景：世界模型/仿真被误当现实真值。"
+    },
+    {
+      "id": "should-not-trigger-01",
+      "type": "should_not_trigger",
+      "prompt": "语音助手要支持 partial transcript、用户抢话、快慢模型和后台工具取消，但没有 GUI 或机器人动作。交互提交边界怎么定？",
+      "expected_behavior": "不应激活 build-multiscale-action-loops，应激活 design-realtime-agent-interactions，并首先定义 partial/final/pending 的消费、承诺和取消语义。",
+      "notes": "跨 Skill 混淆诱饵：实时语音事件协议，不是物理/GUI 多尺度控制。"
+    },
+    {
+      "id": "should-not-trigger-02",
+      "type": "should_not_trigger",
+      "prompt": "固定 API 工作流偶尔超时，重试可能重复扣款，需要幂等键、熔断、预算和人工接管；任务不涉及视觉感知或连续控制。",
+      "expected_behavior": "不应激活 build-multiscale-action-loops，应激活 engineer-agent-failure-closure，并首先分类未知提交状态和可重试性。",
+      "notes": "跨 Skill 混淆诱饵：通用故障恢复闭环，不是感知-动作时间尺度。"
+    },
+    {
+      "id": "edge-01",
+      "type": "edge_case",
+      "prompt": "我们每天在同一个稳定后台按完全固定的 DOM selector 顺序下载报表，没有分支也没有页面漂移。还需要视觉 Agent 每步截图重规划吗？",
+      "expected_behavior": "不应激活 build-multiscale-action-loops；应首先选择确定性工作流或脚本并用最终文件状态验收，只有运行时路径不可枚举时才增加 Agent 闭环。",
+      "notes": "边界：固定 GUI 宏不应被过度 Agent 化。"
+    },
+    {
+      "id": "edge-02",
+      "type": "edge_case",
+      "prompt": "桌面 Agent 必须边看直播画面边点击动态控件，既有视频时序也有动作后页面变化。应该只按实时流处理，还是还要动作分层？",
+      "expected_behavior": "应以 build-multiscale-action-loops 为主并可组合 design-realtime-agent-interactions；首先定义动作技能、后置状态和再观察频率，再为连续视频补因果流式事件协议。",
+      "notes": "边界：连续感知与环境动作并存，按主要失效机制选择并允许组合。"
+    }
+  ],
+  "minimum_pass_rate": 0.8,
+  "notes": "共 7 条：3 条 should_trigger、2 条 should_not_trigger、2 条 edge_case。全部 should_not_trigger 必须通过，其中包含 design-realtime-agent-interactions 与 engineer-agent-failure-closure 的跨 Skill 混淆测试。"
+}

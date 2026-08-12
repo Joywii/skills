@@ -1,0 +1,59 @@
+{
+  "skill": "design-trusted-agent-tools",
+  "version": "0.1.0",
+  "source_book": "《深入理解 AI Agent：设计原理与工程实践》 — 李博杰",
+  "darwin_compatible": true,
+  "test_cases": [
+    {
+      "id": "should-trigger-01",
+      "type": "should_trigger",
+      "prompt": "我们在做薪资助理：它既要解释政策、批量算工资，又能更正某一条工资记录。哪些能力应该写成说明，哪些放代码沙箱，哪些必须做成专用接口？",
+      "expected_behavior": "应激活 design-trusted-agent-tools；首个动作是按读取/计算/写入及副作用、可逆性、权限敏感度列出能力清单，再选择 Skill、受限代码或专用工具。",
+      "notes": "正面场景：同一业务需要在指令、通用执行器和高风险专用工具之间分配能力。"
+    },
+    {
+      "id": "should-trigger-02",
+      "type": "should_trigger",
+      "prompt": "准备接入一个第三方 MCP 服务器，它能读仓库、跑 shell、访问工单 token。帮我做上线前的 trust-boundary 和 least-privilege 设计。",
+      "expected_behavior": "应激活 design-trusted-agent-tools；首个动作是枚举服务器引入的指令、代码、凭证和副作用边界，并为每项标注来源、权限与不可绕过的执行门禁。",
+      "notes": "正面场景：第三方工具供应链与最小权限。"
+    },
+    {
+      "id": "should-trigger-03",
+      "type": "should_trigger",
+      "prompt": "Agent 会动态生成查询代码访问多租户数据库。提示词里写了不得跨租户，但我们担心生成代码漏掉权限条件，怎么设计才可信？",
+      "expected_behavior": "应激活 design-trusted-agent-tools；首个动作是把租户过滤、权限校验和业务真值从生成代码下沉到模型不可绕过的数据层或专用接口。",
+      "notes": "正面场景：提示词不是授权边界，权限必须固化在受信执行层。"
+    },
+    {
+      "id": "should-not-trigger-01",
+      "type": "should_not_trigger",
+      "prompt": "我们的 Agent 有 80 个低风险只读能力，工具定义塞满上下文。想按任务阶段只展示当前需要的能力，并让它需要时再加载详细说明。",
+      "expected_behavior": "不应激活 design-trusted-agent-tools；应激活 progressively-disclose-capabilities，首个动作是按任务阶段和触发信号划分能力目录、摘要层与按需加载层。",
+      "notes": "跨 skill 混淆诱饵：问题是能力渐进披露与上下文负担，不是执行信任边界。"
+    },
+    {
+      "id": "should-not-trigger-02",
+      "type": "should_not_trigger",
+      "prompt": "支付接口超时后可能已经扣款，Agent 现在原样重试并造成重复支付。请给出错误分类、恢复和熔断流程。",
+      "expected_behavior": "不应激活 design-trusted-agent-tools；应激活 engineer-agent-failure-closure，首个动作是把超时分类为提交状态不明并检查幂等键或真实支付状态。",
+      "notes": "跨 skill 混淆诱饵：已有工具的运行时恢复闭环，不是能力表达设计。"
+    },
+    {
+      "id": "edge-01",
+      "type": "edge_case",
+      "prompt": "只想给内部机器人加一个公开天气 API，只读、无账号、无副作用，也不涉及用户数据，需要做一整套权限架构吗？",
+      "expected_behavior": "不应激活 design-trusted-agent-tools 的完整流程；首个动作是用普通、参数清晰的只读工具满足需求，并仅保留基本输入校验、超时和调用日志。",
+      "notes": "边界：低风险只读能力不应被高风险信任模型过度工程化。"
+    },
+    {
+      "id": "edge-02",
+      "type": "edge_case",
+      "prompt": "退款操作既有金额上限等硬规则，也有证据不充分时的人工判断。我们应该先做权限接口，还是先加第二个模型审批？",
+      "expected_behavior": "应先激活 design-trusted-agent-tools，首个动作是把金额、身份、订单状态和幂等性固化到不可绕过的专用退款接口；对剩余不可形式化判断再组合 build-independent-review-loops。",
+      "notes": "边界：工具边界与独立审核可组合，但硬约束必须先落到执行侧。"
+    }
+  ],
+  "minimum_pass_rate": 0.8,
+  "notes": "3 条 should_trigger、2 条 should_not_trigger、2 条 edge_case；全部 should_not_trigger 必须通过，其中包含同书兄弟 Skill 混淆测试。"
+}

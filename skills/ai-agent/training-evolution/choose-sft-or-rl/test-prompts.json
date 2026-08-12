@@ -1,0 +1,59 @@
+{
+  "skill": "choose-sft-or-rl",
+  "version": "0.1.0",
+  "source_book": "《深入理解 AI Agent：设计原理与工程实践》 — 李博杰",
+  "darwin_compatible": true,
+  "test_cases": [
+    {
+      "id": "should-trigger-01",
+      "type": "should_trigger",
+      "prompt": "我们的 8B 客服模型连 tool call JSON 都只有六成能解析，团队想跳过示范数据直接上强化学习，因为最终订单状态可以打分。这个顺序靠谱吗？",
+      "expected_behavior": "应激活 choose-sft-or-rl，并首先测量动作可解析率，把协议稳定性作为 RL 准入门；当前格式不稳时先用 SFT 固形，再评估 RL。",
+      "notes": "正面场景：严格结构化输出尚未稳定，明确比较直接 RL 与 SFT warm start。"
+    },
+    {
+      "id": "should-trigger-02",
+      "type": "should_trigger",
+      "prompt": "微调后的算术 Agent 在训练题上很好，但数字和布局一换就退化。现在格式已经稳定，模拟环境能给确定性最终奖励，我们该继续补示范还是改用交互训练？",
+      "expected_behavior": "应激活 choose-sft-or-rl，并首先把剩余缺口判定为示范复现还是需探索的策略泛化，再检查环境、奖励和 OOD 留出集是否满足 RL 准入。",
+      "notes": "正面场景：SFT 表面拟合、格式已稳且存在可验证交互环境。"
+    },
+    {
+      "id": "should-trigger-03",
+      "type": "should_trigger",
+      "prompt": "我们已经逐项试过补上下文、修工具回写、收窄动作空间和局部规则，长流程 Agent 仍不会根据延迟反馈调整策略。后训练应该怎么选？",
+      "expected_behavior": "应激活 choose-sft-or-rl，并首先确认外部可逆修复的消融证据，再依据是否需要探索和延迟信用分配选择 SFT 基线或 SFT+RL。",
+      "notes": "正面场景：外部修复已被系统消融，进入参数训练方法选择。"
+    },
+    {
+      "id": "should-not-trigger-01",
+      "type": "should_not_trigger",
+      "prompt": "一次售后失败暴露了新规则，我还没决定它该写进知识库、操作手册、服务端代码还是模型权重，怎么选存放位置？",
+      "expected_behavior": "不应激活 choose-sft-or-rl，应激活 route-agent-updates，并首先把经验改写为原子目标能力，判断事实、语言规则、确定约束或统计能力的自然载体。",
+      "notes": "跨 Skill 混淆诱饵：载体尚未确定，不能提前进入参数训练算法选择。"
+    },
+    {
+      "id": "should-not-trigger-02",
+      "type": "should_not_trigger",
+      "prompt": "我想让线上 Agent 每晚从当天轨迹自动改 Prompt，第二天直接全量发布；请帮我设计审批、灰度、旧能力回归和自动回滚。",
+      "expected_behavior": "不应激活 choose-sft-or-rl，应激活 govern-continuous-agent-evolution，并首先隔离在线执行写权限，画出不可自改的可信根与离线候选发布循环。",
+      "notes": "跨 Skill 混淆诱饵：问题是跨版本持续进化治理，不是 SFT/RL 选型。"
+    },
+    {
+      "id": "edge-01",
+      "type": "edge_case",
+      "prompt": "退款政策和价格每周都变，模型老答旧版本。有人建议每周做一次 SFT，另一个人建议改 Prompt，你会怎么判断？",
+      "expected_behavior": "可调用 choose-sft-or-rl 做训练边界判定，但不得开始 SFT/RL；首个动作应把高频变化且需来源的事实路由到版本化知识库或 RAG，并以事实版本与引用验收。",
+      "notes": "边界：字面出现 SFT 与 Prompt，但真实问题是可变事实的载体错配。"
+    },
+    {
+      "id": "edge-02",
+      "type": "edge_case",
+      "prompt": "基础模型已经能稳定产出 99.9% 可解析的动作，我们也有不可修改的隐藏验证器。还必须先做一轮 SFT 才能开始 RL 吗？",
+      "expected_behavior": "应激活 choose-sft-or-rl，但不能机械要求先 SFT；首先验证解析率、基础策略、奖励与真实留出环境，准入条件已满足时允许用小规模直接 RL 对照。",
+      "notes": "边界：强基模可能跳过 SFT，测试是否把‘先形后神’误写成教条。"
+    }
+  ],
+  "minimum_pass_rate": 0.8,
+  "notes": "共 7 条：3 条 should_trigger、2 条 should_not_trigger、2 条 edge_case。全部 should_not_trigger 必须通过，其中包含 route-agent-updates 与 govern-continuous-agent-evolution 的跨 Skill 混淆测试。"
+}

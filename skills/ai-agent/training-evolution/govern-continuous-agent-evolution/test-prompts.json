@@ -1,0 +1,59 @@
+{
+  "skill": "govern-continuous-agent-evolution",
+  "version": "0.1.0",
+  "source_book": "《深入理解 AI Agent：设计原理与工程实践》 — 李博杰",
+  "darwin_compatible": true,
+  "test_cases": [
+    {
+      "id": "should-trigger-01",
+      "type": "should_trigger",
+      "prompt": "产品希望 Agent 每完成一个线上任务就根据点赞、点踩和对话内容直接改自己的系统提示，下一位用户马上用新版本。怎样做才不会把噪声和注入固化？",
+      "expected_behavior": "应激活 govern-continuous-agent-evolution，并首先收回在线执行对正式能力的写权限，分离证据记录与离线候选更新循环。",
+      "notes": "正面场景：未经验证反馈驱动在线自改，存在持久化投毒。"
+    },
+    {
+      "id": "should-trigger-02",
+      "type": "should_trigger",
+      "prompt": "我们的编码 Agent 能修改自己的 Harness。请设计稳定基线、隐藏测试、审批、候选版本、canary 和自动回滚，确保它不能改标准证明自己进步。",
+      "expected_behavior": "应激活 govern-continuous-agent-evolution，并首先画出 Agent 不可修改的可信根与权限矩阵，再定义候选验证和灰度发布门。",
+      "notes": "正面场景：自我修改需要外部可信根和完整发布治理。"
+    },
+    {
+      "id": "should-trigger-03",
+      "type": "should_trigger",
+      "prompt": "经验库、操作规则和模型版本每周都在更新，新任务变好了，但旧客户流程经常回归。我们如何证明系统是在持续进化而不是代际漂移？",
+      "expected_behavior": "应激活 govern-continuous-agent-evolution，并首先建立记忆、迁移、冲突更新和旧能力保留四类发布门，冻结当前稳定版本与回滚指针。",
+      "notes": "正面场景：跨载体、跨版本的持续更新与保留验证。"
+    },
+    {
+      "id": "should-not-trigger-01",
+      "type": "should_not_trigger",
+      "prompt": "我们已经验证了一条售后经验，现在只需要决定它该进知识库、Prompt、程序还是模型参数，不涉及自动发布。",
+      "expected_behavior": "不应激活 govern-continuous-agent-evolution，应激活 route-agent-updates，并首先判断目标能力的自然表示形式和可编辑、可验证、可追溯、可逆要求。",
+      "notes": "跨 Skill 混淆诱饵：单次候选载体选择，不是持续发布循环。"
+    },
+    {
+      "id": "should-not-trigger-02",
+      "type": "should_not_trigger",
+      "prompt": "这个能力已经决定写进模型权重，环境和验证器也准备好了。现在只比较 SFT、RL 和两阶段训练，不需要线上灰度方案。",
+      "expected_behavior": "不应激活 govern-continuous-agent-evolution，应激活 choose-sft-or-rl，并首先判定格式协议与策略探索缺口。",
+      "notes": "跨 Skill 混淆诱饵：参数训练方法选择，不是跨版本进化治理。"
+    },
+    {
+      "id": "edge-01",
+      "type": "edge_case",
+      "prompt": "我们把所有会话原样写进向量库，并在下一次对话检索相似记录。团队称它为持续学习，但没有评价、候选版本或行为回归，这个说法成立吗？",
+      "expected_behavior": "应激活 govern-continuous-agent-evolution 做边界诊断，并首先区分轨迹存储、检索记忆与正式行为更新；当前只能称记忆，不得宣称已持续进化。",
+      "notes": "边界：保存经历不等于形成经过验证的持久能力。"
+    },
+    {
+      "id": "edge-02",
+      "type": "edge_case",
+      "prompt": "知识库由人工每月审核更新，有版本和回滚，但系统不会从生产轨迹自动提案。还需要一套在线/离线自我进化架构吗？",
+      "expected_behavior": "不应默认激活完整 govern-continuous-agent-evolution；应首先确认是否真的存在自动候选与跨版本行为改变，若只是人工知识维护则使用 build-evidence-backed-memory 的版本治理即可。",
+      "notes": "边界：普通人工知识发布不应被过度设计成自治进化系统。"
+    }
+  ],
+  "minimum_pass_rate": 0.8,
+  "notes": "共 7 条：3 条 should_trigger、2 条 should_not_trigger、2 条 edge_case。全部 should_not_trigger 必须通过，其中包含 route-agent-updates 与 choose-sft-or-rl 的跨 Skill 混淆测试。"
+}

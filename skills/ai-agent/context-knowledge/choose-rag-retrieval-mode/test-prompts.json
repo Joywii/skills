@@ -1,0 +1,59 @@
+{
+  "skill": "choose-rag-retrieval-mode",
+  "version": "0.1.0",
+  "source_book": "《深入理解 AI Agent：设计原理与工程实践》 — 李博杰",
+  "darwin_compatible": true,
+  "test_cases": [
+    {
+      "id": "should-trigger-01",
+      "type": "should_trigger",
+      "prompt": "法规库查询同时包含精确法条号和语义描述，纯 dense 丢 ID，纯 BM25 又漏同义表达。hybrid retrieval pipeline 应该怎么选？",
+      "expected_behavior": "应激活 choose-rag-retrieval-mode；首个动作是分别建立稀疏与稠密召回基线，再定义去重、rerank 和证据覆盖指标。",
+      "notes": "正面场景：词面精度与语义召回需要混合检索。"
+    },
+    {
+      "id": "should-trigger-02",
+      "type": "should_trigger",
+      "prompt": "问题要先从一份并购公告找到目标子公司，再用子公司名称查处罚记录，第二次查询依赖第一次结果。one-shot RAG 够吗？",
+      "expected_behavior": "应激活 choose-rag-retrieval-mode；首个动作是把依赖前序新观察的查询画成多跳链，并为每跳定义证据充分性和停止条件。",
+      "notes": "正面场景：真正的多跳检索控制。"
+    },
+    {
+      "id": "should-trigger-03",
+      "type": "should_trigger",
+      "prompt": "用户问知识库里所有供应商中有多少家通过 SOC 2、占比多少。系统目前只会取相关 Top-20，能直接统计吗？",
+      "expected_behavior": "应激活 choose-rag-retrieval-mode；首个动作是拒绝用 Top-k 估算全集，改为可枚举的全库过滤聚合或结构化查询并定义分母。",
+      "notes": "正面场景：全库聚合不能从相关性样本推出。"
+    },
+    {
+      "id": "should-not-trigger-01",
+      "type": "should_not_trigger",
+      "prompt": "用户记忆出现两条冲突偏好，我们要决定是否覆盖、如何保留来源和有效期；查询召回已经没有问题。",
+      "expected_behavior": "不应激活 choose-rag-retrieval-mode，应激活 build-evidence-backed-memory；首个动作是保存带范围和来源的冲突证据并生成可重建视图。",
+      "notes": "跨 Skill 混淆诱饵：这是写路径与冲突治理，不是检索模式。"
+    },
+    {
+      "id": "should-not-trigger-02",
+      "type": "should_not_trigger",
+      "prompt": "Agent 接了两百个 Skills 和 MCP tools，需要搜索‘我现在能做什么’并按需加载 schema；没有业务文档问答。",
+      "expected_behavior": "不应激活 choose-rag-retrieval-mode，应激活 progressively-disclose-capabilities；首个动作是建立带触发和禁用条件的能力目录及运行时缺口发现。",
+      "notes": "跨 Skill 混淆诱饵：检索对象是能力定义，不是业务证据。"
+    },
+    {
+      "id": "edge-01",
+      "type": "edge_case",
+      "prompt": "数据只有一张 300 行的结构化订单表，用户要精确总额和每个地区的数量。要不要先向量检索再让 Agent 汇总？",
+      "expected_behavior": "可不激活 choose-rag-retrieval-mode，也可调用它做检索边界判定；无论哪种路由，首个动作都应确认统计范围并转向 SQL 或确定性程序枚举全表，不得搭建向量 RAG。",
+      "notes": "边界：小型结构化全集有更直接可靠的查询方式。"
+    },
+    {
+      "id": "edge-02",
+      "type": "edge_case",
+      "prompt": "用户问题写得很长，但答案明确在一份已知文档的一段里，不需要根据第一次结果继续查。是不是文字长就该 Agentic RAG？",
+      "expected_behavior": "应激活 choose-rag-retrieval-mode 进行选型，但应保留单跳固定检索；首个动作是按查询依赖而非字数将其判为 single-hop，并验证一次召回是否稳定。",
+      "notes": "边界：长查询不等于多跳，Agentic RAG 不能按表面复杂度启用。"
+    }
+  ],
+  "minimum_pass_rate": 0.8,
+  "notes": "7 条压力测试：3 条 should_trigger、2 条 should_not_trigger、2 条 edge_case；全部 should_not_trigger 必须通过。"
+}

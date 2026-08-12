@@ -1,0 +1,59 @@
+{
+  "skill": "design-multi-agent-collaboration",
+  "version": "0.1.0",
+  "source_book": "《深入理解 AI Agent：设计原理与工程实践》 — 李博杰",
+  "darwin_compatible": true,
+  "test_cases": [
+    {
+      "id": "should-trigger-01",
+      "type": "should_trigger",
+      "prompt": "我们要同时访问十个互不依赖的网站填表，单个 Agent 大部分时间都在等页面。该用 Manager-worker 还是别的并行拓扑，怎么证明值得拆？",
+      "expected_behavior": "应激活 design-multi-agent-collaboration，并首先建立等预算单 Agent 基线，为每个子任务证明独立外部结果的信息增量，再按依赖图选择 fan-out/fan-in。",
+      "notes": "正面场景：多个独立慢外部任务具有真实并行收益。"
+    },
+    {
+      "id": "should-trigger-02",
+      "type": "should_trigger",
+      "prompt": "一个 Agent 负责查内部数据库，另一个只能看公开网页，第三个有发布权限。它们需要协作但绝不能共享全部凭证和上下文，应该怎样分区和交接？",
+      "expected_behavior": "应激活 design-multi-agent-collaboration，并首先列出每个角色新增的独立观测与隔离权限，定义可见性矩阵和自包含结构化移交包。",
+      "notes": "正面场景：不同信息域和权限域需要隔离 Agent 协作。"
+    },
+    {
+      "id": "should-trigger-03",
+      "type": "should_trigger",
+      "prompt": "我们允许专家 Agent 相互转交任务，现在出现 A 交给 B、B 又交回 A，父任务结束后还有子任务写文件。运行时拓扑和生命周期怎么收紧？",
+      "expected_behavior": "应激活 design-multi-agent-collaboration，并首先画任务依赖图和所有权树，由运行时维护 visited set、父子取消、全局预算与隔离写空间。",
+      "notes": "正面场景：去中心化移交循环、孤儿 Agent 与共享写冲突。"
+    },
+    {
+      "id": "should-not-trigger-01",
+      "type": "should_not_trigger",
+      "prompt": "单个研究 Agent 的搜索日志把主上下文塞得很乱，主任务只需要结论和证据。我们已经决定把这段探索隔离出去，不需要设计角色拓扑。",
+      "expected_behavior": "不应激活 design-multi-agent-collaboration，应激活 isolate-before-compressing-context，并首先确认子任务输入输出边界，构造自包含移交包与可继续性验收。",
+      "notes": "跨 Skill 混淆诱饵：隔离只是上下文治理手段，不是多 Agent 架构选型。"
+    },
+    {
+      "id": "should-not-trigger-02",
+      "type": "should_not_trigger",
+      "prompt": "代码产物已经确定采用 Proposer-Reviewer，两者不需要并行或动态委派。现在只想让 Reviewer 读取隐藏测试和渲染结果，输出可定位的 veto 并限制修复轮数。",
+      "expected_behavior": "不应激活 design-multi-agent-collaboration，应激活 build-independent-review-loops，并首先定义候选发布契约和 Reviewer 独有的外部证据。",
+      "notes": "跨 Skill 混淆诱饵：拓扑已经确定，问题是独立审核闭环的专科实现。"
+    },
+    {
+      "id": "edge-01",
+      "type": "edge_case",
+      "prompt": "二十个固定 REST 请求互不依赖，参数和汇总规则都能在运行前写死。为了并发更快，要不要给每个请求配一个 Agent？",
+      "expected_behavior": "可不激活 design-multi-agent-collaboration，也可调用它做架构边界判定；首个动作应建立同预算的普通并发工作流或队列基线，并在固定调用没有信息增量时拒绝多 Agent。",
+      "notes": "边界：并发不等于多 Agent，确定性程序更合适。"
+    },
+    {
+      "id": "edge-02",
+      "type": "edge_case",
+      "prompt": "三个同型号模型看到完全相同的材料，轮流辩论后多数投票。团队认为角色越多越可靠，但没有外部测试、独立模态或额外工具，这种方案值得上吗？",
+      "expected_behavior": "应激活 design-multi-agent-collaboration 做否决性判断，并首先用等总 token 的单 Agent 基线和角色消融检查信息增量；没有新信息时应退回单 Agent，而非设计更复杂拓扑。",
+      "notes": "边界：调用该方法是为了拒绝无信息增量的伪协作。"
+    }
+  ],
+  "minimum_pass_rate": 0.8,
+  "notes": "共 7 条：3 条 should_trigger、2 条 should_not_trigger、2 条 edge_case。全部 should_not_trigger 必须通过，其中包含 isolate-before-compressing-context 与 build-independent-review-loops 的跨 Skill 混淆测试。"
+}

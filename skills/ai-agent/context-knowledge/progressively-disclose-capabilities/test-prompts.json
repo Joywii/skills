@@ -1,0 +1,59 @@
+{
+  "skill": "progressively-disclose-capabilities",
+  "version": "0.1.0",
+  "source_book": "《深入理解 AI Agent：设计原理与工程实践》 — 李博杰",
+  "darwin_compatible": true,
+  "test_cases": [
+    {
+      "id": "should-trigger-01",
+      "type": "should_trigger",
+      "prompt": "平台接了 400 个 MCP tools，启动时全部塞进 prompt，模型经常选错同名接口。怎么做 tool discovery 而不是全量加载？",
+      "expected_behavior": "应激活 progressively-disclose-capabilities；首个动作是盘点能力簇并建立常驻的短目录，目录写清触发、禁用条件和详情入口。",
+      "notes": "正面场景：大规模工具造成上下文膨胀和选择稀释。"
+    },
+    {
+      "id": "should-trigger-02",
+      "type": "should_trigger",
+      "prompt": "初始请求只像报表问题，执行三步后才发现要调用税务系统；一次性 tool prefilter 已把税务工具排除了。runtime capability gap 怎么处理？",
+      "expected_behavior": "应激活 progressively-disclose-capabilities；首个动作是定义运行中可重复触发的能力缺口检测，并允许从目录检索、加载新能力详情后继续。",
+      "notes": "正面场景：后续观察产生新需求，不能只在开局预筛。"
+    },
+    {
+      "id": "should-trigger-03",
+      "type": "should_trigger",
+      "prompt": "我们有上千页操作手册和 120 个 Skills，希望核心 SOP 命中时加载，少见细则需要时再读，同时保持用户能发现有哪些能力。",
+      "expected_behavior": "应激活 progressively-disclose-capabilities；首个动作是把内容拆成常驻目录、命中后加载的核心流程和执行中按缺口读取的细则三层。",
+      "notes": "正面场景：能力可发现性与上下文预算的三层披露。"
+    },
+    {
+      "id": "should-not-trigger-01",
+      "type": "should_not_trigger",
+      "prompt": "法务问答要从判例库找业务证据，我们正在选择 dense+sparse、reranker 和多跳 Agentic RAG；工具只有三个。",
+      "expected_behavior": "不应激活 progressively-disclose-capabilities，应激活 choose-rag-retrieval-mode；首个动作是判断查询是单跳、多跳还是全库聚合，再设计证据停止条件。",
+      "notes": "跨 Skill 混淆诱饵：检索对象是业务知识，不是可执行能力定义。"
+    },
+    {
+      "id": "should-not-trigger-02",
+      "type": "should_not_trigger",
+      "prompt": "新增一个能删除生产数据的第三方 MCP server。我们只关心权限、沙箱、审批和供应链签名，工具数量并不多。",
+      "expected_behavior": "不应激活 progressively-disclose-capabilities，应激活 design-trusted-agent-tools；首个动作是定义最小权限、不可逆动作确认、服务端验证和供应链信任边界。",
+      "notes": "跨 Skill 混淆诱饵：这是高风险能力的执行信任问题，不是披露数量问题。"
+    },
+    {
+      "id": "edge-01",
+      "type": "edge_case",
+      "prompt": "Agent 只有 5 个短小、互不重叠的只读工具，总 schema 不到 1K token。还要做 deferred tool loading 吗？",
+      "expected_behavior": "不应激活 progressively-disclose-capabilities；首个动作是确认全量暴露没有误路由或预算问题，保持简单固定菜单。",
+      "notes": "边界：少量稳定能力不值得引入发现运行时。"
+    },
+    {
+      "id": "edge-02",
+      "type": "edge_case",
+      "prompt": "我们有 600 个只有一个参数的细粒度工具，准备加向量搜索隐藏大部分 schema。这样就能解决工具选择爆炸吗？",
+      "expected_behavior": "不能把 progressively-disclose-capabilities 当唯一修复；首个动作是先按任务语义合并过细接口并校正触发边界，随后才为合理能力簇设计按需披露。",
+      "notes": "边界：渐进披露不能修复错误的工具粒度建模。"
+    }
+  ],
+  "minimum_pass_rate": 0.8,
+  "notes": "7 条压力测试：3 条 should_trigger、2 条 should_not_trigger、2 条 edge_case；全部 should_not_trigger 必须通过。"
+}

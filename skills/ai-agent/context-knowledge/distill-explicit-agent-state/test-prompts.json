@@ -1,0 +1,59 @@
+{
+  "skill": "distill-explicit-agent-state",
+  "version": "0.1.0",
+  "source_book": "《深入理解 AI Agent：设计原理与工程实践》 — 李博杰",
+  "darwin_compatible": true,
+  "test_cases": [
+    {
+      "id": "should-trigger-01",
+      "type": "should_trigger",
+      "prompt": "Coding Agent 每轮都重读几十条历史来数已用测试次数、剩余预算和未完成 TODO，偶尔还会数错。能不能做一个权威 status bar？",
+      "expected_behavior": "应激活 distill-explicit-agent-state；首个动作是定义由原始事件确定性归约的 test_count、budget_remaining 和 open_todos 字段及版本。",
+      "notes": "正面场景：确定变量被模型反复扫描和概率计算。"
+    },
+    {
+      "id": "should-trigger-02",
+      "type": "should_trigger",
+      "prompt": "异步任务返回 pending 占位符后，模型把它当最终数据写进报告。事件之后还有 completed 或 failed，我们该怎样表达当前状态？",
+      "expected_behavior": "应激活 distill-explicit-agent-state；首个动作是定义 pending、completed、failed 的互斥状态和只接受最新合法事件的 reducer。",
+      "notes": "正面场景：占位符与真实结果混淆，需要显式状态投影。"
+    },
+    {
+      "id": "should-trigger-03",
+      "type": "should_trigger",
+      "prompt": "长任务压缩后恢复，Agent 不知道邮件已经发过，又执行了一次副作用。原轨迹必须保留，怎么避免重复？",
+      "expected_behavior": "应激活 distill-explicit-agent-state；首个动作是从副作用事件和幂等键归约已完成动作集合，并把权威投影注入恢复上下文而不删除原证据。",
+      "notes": "正面场景：恢复后丢失确定状态导致重复副作用。"
+    },
+    {
+      "id": "should-not-trigger-01",
+      "type": "should_not_trigger",
+      "prompt": "个人助理需要跨会话记住用户的饮食偏好、来源和有效期；新偏好与旧记录冲突时不能直接覆盖。",
+      "expected_behavior": "不应激活 distill-explicit-agent-state，应激活 build-evidence-backed-memory；首个动作是保留带来源和时间范围的原始记录，再建立可重建的当前偏好视图。",
+      "notes": "跨 Skill 混淆诱饵：这是长期记忆生命周期，不是单次运行状态。"
+    },
+    {
+      "id": "should-not-trigger-02",
+      "type": "should_not_trigger",
+      "prompt": "工具超时后系统会无限重试，支付接口又不幂等；我们需要 retry budget、circuit breaker 和最终终止出口。",
+      "expected_behavior": "不应激活 distill-explicit-agent-state，应激活 engineer-agent-failure-closure；首个动作是按故障类型定义可恢复性、重试上限、幂等保护和停止状态。",
+      "notes": "跨 Skill 混淆诱饵：状态投影回答当前状态，故障 Skill 才定义恢复转移。"
+    },
+    {
+      "id": "edge-01",
+      "type": "edge_case",
+      "prompt": "这个任务只有两步，当前工具响应里已经直接给出 completed=true，也不会恢复或并发。需要额外维护状态栏吗？",
+      "expected_behavior": "不应激活 distill-explicit-agent-state；首个动作是直接消费当前结构化结果，避免复制一份没有额外判定价值的状态。",
+      "notes": "边界：短任务可直接查询权威结果时，投影只增加同步风险。"
+    },
+    {
+      "id": "edge-02",
+      "type": "edge_case",
+      "prompt": "状态栏里既要记录 payment_received，也想写‘客户已经满意’。后者只能由模型读对话猜测，应该一起做 reducer 吗？",
+      "expected_behavior": "应仅对确定字段激活 distill-explicit-agent-state；首个动作是把 payment_received 绑定支付事件，把开放式满意度移出权威状态或增加独立可验证来源。",
+      "notes": "边界：确定投影不能把主观判断伪装成权威状态。"
+    }
+  ],
+  "minimum_pass_rate": 0.8,
+  "notes": "7 条压力测试：3 条 should_trigger、2 条 should_not_trigger、2 条 edge_case；全部 should_not_trigger 必须通过。"
+}

@@ -1,0 +1,59 @@
+{
+  "skill": "design-verifiable-agent-rewards",
+  "version": "0.1.0",
+  "source_book": "《深入理解 AI Agent：设计原理与工程实践》 — 李博杰",
+  "darwin_compatible": true,
+  "test_cases": [
+    {
+      "id": "should-trigger-01",
+      "type": "should_trigger",
+      "prompt": "代码 Agent 的训练奖励就是测试通过率，最近分数暴涨，但我们发现它会删除失败测试和改断言。奖励该怎么重构？",
+      "expected_behavior": "应激活 design-verifiable-agent-rewards，并首先把真实结果、允许路径和禁止路径分开，隔离不可修改的验证器并把删测试设为硬否决。",
+      "notes": "正面场景：典型 reward hacking，结果代理可被破坏性捷径满足。"
+    },
+    {
+      "id": "should-trigger-02",
+      "type": "should_trigger",
+      "prompt": "客服 Agent 一轮要做二十多个动作，只有最后订单状态给 0/1 奖励，探索太慢。哪些中间步骤适合加过程分？",
+      "expected_behavior": "应激活 design-verifiable-agent-rewards，并首先列出环境可直接观察、决策时已可见且与真实进展相关的中间事件，再逐个消融过程奖励。",
+      "notes": "正面场景：终局奖励稀疏，需要筛选真正可验证的路径信号。"
+    },
+    {
+      "id": "should-trigger-03",
+      "type": "should_trigger",
+      "prompt": "我们用另一个模型给轨迹打分，评分器会看到完整未来对话，训练策略还能读取评分提示。离线相关性很好，这能直接作为优化目标吗？",
+      "expected_behavior": "应激活 design-verifiable-agent-rewards，并首先按信号来源、产生时机、可见信息和允许路径四维审计，拒绝未来信息泄漏和策略可接触的验证规则。",
+      "notes": "正面场景：奖励来源同源、未来信息泄漏与验证器暴露。"
+    },
+    {
+      "id": "should-not-trigger-01",
+      "type": "should_not_trigger",
+      "prompt": "模型连函数调用格式都不稳定，我还没决定先做监督微调还是直接强化学习；暂时也没有可靠环境。",
+      "expected_behavior": "不应激活 design-verifiable-agent-rewards，应激活 choose-sft-or-rl，并首先检查动作可解析性与外部修复路径；没有可靠环境时不得进入 RL 奖励设计。",
+      "notes": "跨 Skill 混淆诱饵：这是训练方法和准入选择，尚未进入奖励工程。"
+    },
+    {
+      "id": "should-not-trigger-02",
+      "type": "should_not_trigger",
+      "prompt": "我们要从零搭建一套 Agent benchmark，需要任务集、环境 reset、用户模拟器、Rubric、Judge 金标校准和版本报告。",
+      "expected_behavior": "不应激活 design-verifiable-agent-rewards，应激活 build-reproducible-agent-evals，并首先定义跨任务成功契约与可重置环境。",
+      "notes": "跨 Skill 混淆诱饵：建设评估基础设施，不是把评估信号暴露给优化策略。"
+    },
+    {
+      "id": "edge-01",
+      "type": "edge_case",
+      "prompt": "我只是在离线比较两个搜索排序器的 NDCG，没有策略训练、搜索循环或任何模型会针对这个分数优化，还需要做路径奖励吗？",
+      "expected_behavior": "不应激活 design-verifiable-agent-rewards；应把 NDCG 当普通离线评测指标，按既定离线协议比较并检查统计可信度。若数据或标注来源尚未验证，再补做对应核验。",
+      "notes": "边界：存在分数但没有交互优化主体，不应把评测包装成奖励工程。"
+    },
+    {
+      "id": "edge-02",
+      "type": "edge_case",
+      "prompt": "创意写作助手只有读者满意度，没有客观正确答案。团队仍想做偏好优化，怎样避免一个伪精确的总分把风格带偏？",
+      "expected_behavior": "可激活 design-verifiable-agent-rewards 做边界审计，并首先声明开放审美无法获得完整客观验证；保留多维人工偏好、置信度和否决项，不虚构确定性过程奖励。",
+      "notes": "边界：可做奖励治理，但必须承认软目标无法被完全验证。"
+    }
+  ],
+  "minimum_pass_rate": 0.8,
+  "notes": "共 7 条：3 条 should_trigger、2 条 should_not_trigger、2 条 edge_case。全部 should_not_trigger 必须通过，其中包含 choose-sft-or-rl 与 build-reproducible-agent-evals 的跨 Skill 混淆测试。"
+}

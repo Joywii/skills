@@ -1,0 +1,59 @@
+{
+  "skill": "build-independent-review-loops",
+  "version": "0.1.0",
+  "source_book": "《深入理解 AI Agent：设计原理与工程实践》 — 李博杰",
+  "darwin_compatible": true,
+  "test_cases": [
+    {
+      "id": "should-trigger-01",
+      "type": "should_trigger",
+      "prompt": "转账 Agent 已经有金额和权限校验，但收款目的、附件证据仍要语义判断。主模型被邮件内容污染时，怎样在执行前增加真正独立的审批？",
+      "expected_behavior": "应激活 build-independent-review-loops；首个动作是定义 Proposer 提案包与 Reviewer 可见的结构化动作、权限元数据和独立证据，避免把被污染的完整轨迹直接交给 Reviewer。",
+      "notes": "正面场景：不可逆动作仍有无法完全形式化的语义风险。"
+    },
+    {
+      "id": "should-trigger-02",
+      "type": "should_trigger",
+      "prompt": "PPT 生成器输出的 Slidev 代码能编译，但经常溢出、字体太小、图表与讲解视频不同步。怎么设计 proposer-reviewer 闭环？",
+      "expected_behavior": "应激活 build-independent-review-loops；首个动作是让审核者读取渲染截图、音视频时长等提议者生成时不可见的异模态证据，并定义结构化退回条件。",
+      "notes": "正面场景：开放式产物需要异模态独立证据。"
+    },
+    {
+      "id": "should-trigger-03",
+      "type": "should_trigger",
+      "prompt": "我们允许代码 Agent 提交修改自身 Harness 的补丁，但不希望它降低测试门槛或直接覆盖稳定版本，外部复核链路该怎么搭？",
+      "expected_behavior": "应激活 build-independent-review-loops；首个动作是把稳定版本、验收测试和发布权限移出提议者控制域，并规定提案、外部审核、修复、再验证和预算上限。",
+      "notes": "正面场景：自我修改必须经过异源审核与外部真值。"
+    },
+    {
+      "id": "should-not-trigger-01",
+      "type": "should_not_trigger",
+      "prompt": "跨地区税务条款互相引用，我要让模型提取变量和例外，再用约束求解器计算应缴额并检查守恒关系。",
+      "expected_behavior": "不应激活 build-independent-review-loops；应激活 formalize-and-verify-agent-work，首个动作是把主体、时段、变量、例外和约束整理为可执行表示。",
+      "notes": "跨 skill 混淆诱饵：确定性求值足以裁决时应优先形式化，而不是增加模型审核。"
+    },
+    {
+      "id": "should-not-trigger-02",
+      "type": "should_not_trigger",
+      "prompt": "训练客服 Agent 时，奖励不能只看措辞。我想从数据库订单状态、权限日志和格式检查构造可验证 reward，并防止 reward hacking。",
+      "expected_behavior": "不应激活 build-independent-review-loops；应激活 design-verifiable-agent-rewards，首个动作是列出真实环境结果、过程否决项和可执行验证器。",
+      "notes": "跨 skill 混淆诱饵：问题是训练奖励契约，不是提议者与审核者闭环。"
+    },
+    {
+      "id": "edge-01",
+      "type": "edge_case",
+      "prompt": "我准备让同一个模型用同一段上下文再检查一次自己的答案，没有测试、渲染结果或外部数据，这算独立审核吗？",
+      "expected_behavior": "不应直接激活或宣称 build-independent-review-loops 已成立；首个动作是指出缺少信息独立性，并要求异源模型、环境真值、确定性检查或人工证据，否则只是自我反思。",
+      "notes": "边界：同源、同上下文、无新证据的二次思考不是独立审核。"
+    },
+    {
+      "id": "edge-02",
+      "type": "edge_case",
+      "prompt": "报销单的金额、日期和发票号可以程序校验，但用途说明是否合理只能结合上下文判断。要不要全部交给第二个模型？",
+      "expected_behavior": "应激活 build-independent-review-loops 但仅覆盖不可形式化的用途判断；首个动作是先把金额、日期、发票号交给确定性验证，再定义 Reviewer 对用途证据的独立审查范围。",
+      "notes": "边界：确定性验证与独立审核分层，不应让 Reviewer 覆盖全部规则。"
+    }
+  ],
+  "minimum_pass_rate": 0.8,
+  "notes": "3 条 should_trigger、2 条 should_not_trigger、2 条 edge_case；全部 should_not_trigger 必须通过，其中包含同书兄弟 Skill 混淆测试。"
+}
