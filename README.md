@@ -34,6 +34,7 @@ collections/
 | `ai-agent` | [`evaluation`](./skills/ai-agent/evaluation/) | 可复现评估、可靠性与首错归因 |
 | `ai-agent` | [`training-evolution`](./skills/ai-agent/training-evolution/) | SFT/RL、奖励、更新载体与持续进化 |
 | `ai-agent` | [`interaction-collaboration`](./skills/ai-agent/interaction-collaboration/) | 实时交互、多尺度行动与多 Agent 协作 |
+| `stock` | [`skills`](./skills/stock/) | A股和美股数据、新闻情绪、机构资金流与股票筛选 |
 
 当前集合：[`ai-agents-in-depth-zh-cn`](./collections/ai-agents-in-depth-zh-cn/)，从李博杰《深入理解 AI Agent：设计原理与工程实践》v1.4 蒸馏出 22 个 Skills。
 
